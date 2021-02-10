@@ -1,6 +1,5 @@
 <template>
   <div class="background">
-    {{counter}}
     <div id="errorSide" class="errorContainer" v-if="error !== ''">
       {{ error }}
     </div>
@@ -9,10 +8,15 @@
         id="cardNumber"
         class="cardInput"
         placeholder="Card Number"
-        v-model="cardNumber"
+        @input="updateCardStore"
         maxlength="16"
       />
-      <select id="cardMonth" class="cardInput" v-model="cardMonth" required>
+      <select
+        id="cardMonth"
+        class="cardInput"
+        @input="updateCardStore"
+        required
+      >
         <option value="" disabled selected>Month</option>
         <option
           :value="n < 10 ? '0' + n : n"
@@ -23,7 +27,7 @@
           {{ n < 10 ? '0' + n : n }}
         </option>
       </select>
-      <select id="cardYear" class="cardInput" v-model="cardYear">
+      <select id="cardYear" class="cardInput" @input="updateCardStore">
         <option value="" disabled selected>Year</option>
         <option
           :value="$index + minCardYear"
@@ -37,64 +41,30 @@
         id="cardCVV"
         class="cardInput"
         placeholder="Card CVV Number"
-        v-model="cardCVV"
+        @input="updateCardStore"
         maxlength="3"
       />
-      <button id="payButton" @click="pay()">Pay with Credit Card</button>
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  watch: {
 
-  },
+export default {
+  watch: {},
   data() {
     return {
-      cardNumber: '',
-      cardYear: '',
-      cardMonth: '',
-      cardCVV: '',
-      error: '',
       minCardYear: new Date().getFullYear(),
     }
   },
+  computed: {
+    error() {
+      return this.$store.state.card.error
+    },
+  },
   methods: {
-    async pay() {
-      this.error = ''
-      if (this.cardNumber.length < 16) {
-        this.error = 'Card Number cannot be less than 16 digits'
-        return
-      }
-      let onlyDigitsExp = new RegExp('^[0-9]+$')
-      if (!onlyDigitsExp.test(this.cardNumber)) {
-        this.error = 'Card Number can be 16 digits not letters'
-        return
-      }
-      if (this.cardCVV.length < 3) {
-        this.error = 'Card CVV cannot be less than 3 digits'
-        return
-      }
-      if (!onlyDigitsExp.test(this.cardCVV)) {
-        this.error = 'Card CVV can be 3 digits not letters'
-        return
-      }
-      if (!this.cardMonth || !this.cardYear) {
-        this.error = 'Date cannot be empty'
-        return
-      }
-
-      const ip = this.$axios
-        .$get('http://icanhazip.com')
-        .then((res) => {
-          this.error=''
-          window.alert('Success')
-        })
-        .catch((err) => {
-          console.log(err)
-          this.error = 'Network error'
-        })
+    updateCardStore(e) {
+      this.$store.commit('card/set' + e.target.id, e.target.value)
     },
   },
 }
